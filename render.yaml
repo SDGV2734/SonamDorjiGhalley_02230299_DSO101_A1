@@ -5,6 +5,7 @@ services:
     plan: free 
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -17,6 +18,7 @@ services:
     plan: free  
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: REACT_APP_API_URL
         value: https://be-todo-02230299.onrender.com
