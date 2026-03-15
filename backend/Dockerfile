@@ -2,13 +2,13 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY backend/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY backend/prisma ./prisma
+COPY prisma ./prisma
 RUN npx prisma generate
 
-COPY backend/ .
+COPY . .
 
 EXPOSE 5000
 
