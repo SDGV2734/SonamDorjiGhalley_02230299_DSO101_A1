@@ -4,9 +4,10 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./
+    dockerContext: ./backend
     envVars:
       - key: DATABASE_URL
+        value: postgresql://to_do_db_panq_user:4jNgb8dZqHi29By7NXaxvZPz8zFb4069@dpg-d6rblp1j16oc73f4jte0-a/to_do_db_panq?sslmode=require
         sync: true
       - key: PORT
         value: 5000
