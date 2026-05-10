@@ -1,0 +1,155 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'NodeJS'
+    }
+
+    environment {
+        DOCKER_IMAGE_FRONTEND = 'sdgv2734/todo-frontend'
+        DOCKER_IMAGE_BACKEND  = 'sdgv2734/todo-backend'
+        DOCKER_TAG            = "build-${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo '========== Checking out source code from GitHub =========='
+                git branch: 'main',
+                    url: 'https://github.com/SDGV2734/SonamDorjiGhalley_02230299_DSO101_A1.git'
+            }
+        }
+
+        stage('Install Frontend Dependencies') {
+            steps {
+                echo '========== Installing frontend dependencies =========='
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm install --save-dev jest-junit'
+                }
+            }
+        }
+
+        stage('Install Backend Dependencies') {
+            steps {
+                echo '========== Installing backend dependencies =========='
+                dir('backend') {
+                    sh 'npm install'
+                    sh 'npm install --save-dev jest jest-junit supertest'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                echo '========== Building React frontend =========='
+                dir('frontend') {
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Test Frontend') {
+            steps {
+                echo '========== Running frontend tests =========='
+                dir('frontend') {
+                    sh 'JEST_JUNIT_OUTPUT_FILE=junit.xml CI=true npm test -- --watchAll=false --reporters=default --reporters=jest-junit'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'frontend/junit.xml'
+                    echo '========== Frontend test results published =========='
+                }
+            }
+        }
+
+        stage('Test Backend') {
+            steps {
+                echo '========== Running backend tests =========='
+                dir('backend') {
+                    sh 'npx jest --ci --reporters=default --reporters=jest-junit'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'backend/junit.xml'
+                    echo '========== Backend test results published =========='
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo '========== Building Docker images =========='
+                script {
+                    frontendImage = docker.build("${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}", './frontend')
+                    backendImage  = docker.build("${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}",  './backend')
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                echo '========== Pushing images to Docker Hub =========='
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-creds') {
+                        frontendImage.push("${DOCKER_TAG}")
+                        frontendImage.push('latest')
+                        backendImage.push("${DOCKER_TAG}")
+                        backendImage.push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo '========== Deploying containers =========='
+                script {
+                    sh 'docker stop todo-frontend-container || true'
+                    sh 'docker rm   todo-frontend-container || true'
+                    sh 'docker stop todo-backend-container  || true'
+                    sh 'docker rm   todo-backend-container  || true'
+
+                    sh """
+                        docker run -d \
+                            --name todo-backend-container \
+                            -p 5000:5000 \
+                            -e DATABASE_URL='postgresql://to_do_db_panq_user:4jNgb8dZqHi29By7NXaxvZPz8zFb4069@dpg-d6rblp1j16oc73f4jte0-a/to_do_db_panq?sslmode=require' \
+                            -e PORT=5000 \
+                            ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
+                    """
+                    sh """
+                        docker run -d \
+                            --name todo-frontend-container \
+                            -p 3000:3000 \
+                            -e REACT_APP_API_URL='https://be-todo-02230299.onrender.com' \
+                            ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
+                    """
+                    echo '========== Frontend: http://localhost:3000 =========='
+                    echo '========== Backend:  http://localhost:5000 =========='
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '==========================================='
+            echo ' PIPELINE SUCCEEDED'
+            echo ' Frontend → http://localhost:3000'
+            echo ' Backend  → http://localhost:3001'
+            echo '==========================================='
+        }
+        failure {
+            echo '==========================================='
+            echo ' PIPELINE FAILED — check logs above'
+            echo '==========================================='
+        }
+        always {
+            echo '========== Pipeline complete =========='
+        }
+    }
+}

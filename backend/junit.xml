@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="7" failures="0" errors="0" time="0.409">
+  <testsuite name="GET /tasks" errors="0" failures="0" skipped="0" timestamp="2026-05-10T14:15:50" time="0.341" tests="7">
+    <testcase classname="GET /tasks returns list of tasks with status 200" name="GET /tasks returns list of tasks with status 200" time="0.015">
+    </testcase>
+    <testcase classname="POST /tasks creates a new task and returns 201" name="POST /tasks creates a new task and returns 201" time="0.007">
+    </testcase>
+    <testcase classname="POST /tasks returns 400 when title is empty" name="POST /tasks returns 400 when title is empty" time="0.002">
+    </testcase>
+    <testcase classname="POST /tasks returns 400 when title is missing" name="POST /tasks returns 400 when title is missing" time="0.001">
+    </testcase>
+    <testcase classname="PUT /tasks/:id updates a task and returns 200" name="PUT /tasks/:id updates a task and returns 200" time="0.001">
+    </testcase>
+    <testcase classname="PUT /tasks/:id returns 400 when title is empty on update" name="PUT /tasks/:id returns 400 when title is empty on update" time="0.001">
+    </testcase>
+    <testcase classname="DELETE /tasks/:id deletes a task and returns 200" name="DELETE /tasks/:id deletes a task and returns 200" time="0.002">
+    </testcase>
+  </testsuite>
+</testsuites>

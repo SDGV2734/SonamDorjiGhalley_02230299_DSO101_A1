@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
+    "test": "jest --ci --reporters=default --reporters=jest-junit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"
@@ -19,7 +20,10 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "jest": "^30.4.2",
+    "jest-junit": "^17.0.0",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.2"
+    "prisma": "^6.19.2",
+    "supertest": "^7.2.2"
   }
 }
