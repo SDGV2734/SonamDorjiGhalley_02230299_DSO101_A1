@@ -20,7 +20,7 @@ function App() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, []);a
 
   const addOrUpdateTask = async () => {
     if (!title.trim()) return;
