@@ -9,6 +9,8 @@ pipeline {
         DOCKER_IMAGE_FRONTEND = 'sdgv2734/todo-frontend'
         DOCKER_IMAGE_BACKEND  = 'sdgv2734/todo-backend'
         DOCKER_TAG            = "build-${BUILD_NUMBER}"
+        DOCKER_HOST           = 'unix:///Users/sonamdorjighalley/.docker/run/docker.sock'
+        PATH+DOCKER           = '/usr/local/bin:/opt/homebrew/bin'
     }
 
     stages {
