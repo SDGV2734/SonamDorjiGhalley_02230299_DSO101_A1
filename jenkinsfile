@@ -10,6 +10,7 @@ pipeline {
         DOCKER_IMAGE_BACKEND  = 'sdgv2734/todo-backend'
         DOCKER_TAG            = "build-${BUILD_NUMBER}"
         DOCKER_HOST           = 'unix:///Users/sonamdorjighalley/.docker/run/docker.sock'
+        DOCKER                = '/usr/local/bin/docker'
         PATH                  = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
     }
 
@@ -69,23 +70,26 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo '========== Building Docker images =========='
-                script {
-                    frontendImage = docker.build("${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}", './frontend')
-                    backendImage  = docker.build("${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}",  './backend')
-                }
+                sh '${DOCKER} build -t ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ./frontend'
+                sh '${DOCKER} build -t ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG} ./backend'
             }
         }
 
         stage('Docker Push') {
             steps {
                 echo '========== Pushing images to Docker Hub =========='
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-creds') {
-                        frontendImage.push("${DOCKER_TAG}")
-                        frontendImage.push('latest')
-                        backendImage.push("${DOCKER_TAG}")
-                        backendImage.push('latest')
-                    }
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | ${DOCKER} login -u "$DOCKER_USERNAME" --password-stdin
+
+                        ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
+                        ${DOCKER} tag  ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ${DOCKER_IMAGE_FRONTEND}:latest
+                        ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:latest
+
+                        ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
+                        ${DOCKER} tag  ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG} ${DOCKER_IMAGE_BACKEND}:latest
+                        ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:latest
+                    '''
                 }
             }
         }
@@ -94,13 +98,13 @@ pipeline {
             steps {
                 echo '========== Deploying containers =========='
                 script {
-                    sh 'docker stop todo-frontend-container || true'
-                    sh 'docker rm   todo-frontend-container || true'
-                    sh 'docker stop todo-backend-container  || true'
-                    sh 'docker rm   todo-backend-container  || true'
+                    sh '${DOCKER} stop todo-frontend-container || true'
+                    sh '${DOCKER} rm   todo-frontend-container || true'
+                    sh '${DOCKER} stop todo-backend-container  || true'
+                    sh '${DOCKER} rm   todo-backend-container  || true'
 
                     sh """
-                        docker run -d \
+                        ${DOCKER} run -d \
                             --name todo-backend-container \
                             -p 5000:5000 \
                             -e DATABASE_URL='postgresql://to_do_db_panq_user:4jNgb8dZqHi29By7NXaxvZPz8zFb4069@dpg-d6rblp1j16oc73f4jte0-a/to_do_db_panq?sslmode=require' \
@@ -108,7 +112,7 @@ pipeline {
                             ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
                     """
                     sh """
-                        docker run -d \
+                        ${DOCKER} run -d \
                             --name todo-frontend-container \
                             -p 3000:3000 \
                             -e REACT_APP_API_URL='https://be-todo-02230299.onrender.com' \
