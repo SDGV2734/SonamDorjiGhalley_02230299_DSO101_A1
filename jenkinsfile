@@ -16,7 +16,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '========== Checking out source code from GitHub =========='
-                git branch: 'main',
+                git branch: 'assignment-2',
                     url: 'https://github.com/SDGV2734/SonamDorjiGhalley_02230299_DSO101_A1.git'
             }
         }
