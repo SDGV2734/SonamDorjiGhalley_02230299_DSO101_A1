@@ -11,6 +11,7 @@ pipeline {
         DOCKER_TAG            = "build-${BUILD_NUMBER}"
         DOCKER_HOST           = 'unix:///Users/sonamdorjighalley/.docker/run/docker.sock'
         DOCKER                = '/usr/local/bin/docker'
+        DOCKER_CLIENT_TIMEOUT = '300'
         PATH                  = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
     }
 
@@ -79,17 +80,19 @@ pipeline {
             steps {
                 echo '========== Pushing images to Docker Hub =========='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh '''
-                        echo "$DOCKER_PASSWORD" | ${DOCKER} login -u "$DOCKER_USERNAME" --password-stdin
+                    retry(3) {
+                        sh '''
+                            echo "$DOCKER_PASSWORD" | ${DOCKER} login -u "$DOCKER_USERNAME" --password-stdin
 
-                        ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
-                        ${DOCKER} tag  ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ${DOCKER_IMAGE_FRONTEND}:latest
-                        ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:latest
+                            ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
+                            ${DOCKER} tag  ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ${DOCKER_IMAGE_FRONTEND}:latest
+                            ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:latest
 
-                        ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
-                        ${DOCKER} tag  ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG} ${DOCKER_IMAGE_BACKEND}:latest
-                        ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:latest
-                    '''
+                            ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
+                            ${DOCKER} tag  ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG} ${DOCKER_IMAGE_BACKEND}:latest
+                            ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:latest
+                        '''
+                    }
                 }
             }
         }
