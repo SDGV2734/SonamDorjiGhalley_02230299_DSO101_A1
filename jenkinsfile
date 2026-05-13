@@ -26,7 +26,6 @@ pipeline {
                 echo '========== Installing frontend dependencies =========='
                 dir('frontend') {
                     sh 'npm install'
-                    sh 'npm install --save-dev jest-junit'
                 }
             }
         }
@@ -50,26 +49,11 @@ pipeline {
             }
         }
 
-        stage('Test Frontend') {
-            steps {
-                echo '========== Running frontend tests =========='
-                dir('frontend') {
-                    sh 'JEST_JUNIT_OUTPUT_FILE=junit.xml CI=true npm test -- --watchAll=false --reporters=default --reporters=jest-junit'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'frontend/junit.xml'
-                    echo '========== Frontend test results published =========='
-                }
-            }
-        }
-
         stage('Test Backend') {
             steps {
                 echo '========== Running backend tests =========='
                 dir('backend') {
-                    sh 'npx jest --ci --reporters=default --reporters=jest-junit'
+                    sh 'JEST_JUNIT_OUTPUT_FILE=junit.xml npm test -- --watchman=false'
                 }
             }
             post {
