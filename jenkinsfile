@@ -82,18 +82,24 @@ pipeline {
             steps {
                 echo '========== Pushing images to Docker Hub =========='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    retry(3) {
-                        sh '''
-                            echo "$DOCKER_PASSWORD" | ${DOCKER} login -u "$DOCKER_USERNAME" --password-stdin
+                    script {
+                        def images = [
+                            env.DOCKER_IMAGE_FRONTEND,
+                            env.DOCKER_IMAGE_BACKEND
+                        ]
 
-                            ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
-                            ${DOCKER} tag  ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ${DOCKER_IMAGE_FRONTEND}:latest
-                            ${DOCKER} push ${DOCKER_IMAGE_FRONTEND}:latest
-
-                            ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
-                            ${DOCKER} tag  ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG} ${DOCKER_IMAGE_BACKEND}:latest
-                            ${DOCKER} push ${DOCKER_IMAGE_BACKEND}:latest
-                        '''
+                        images.each { imageName ->
+                            retry(3) {
+                                sh """
+                                    set -eu
+                                    ${DOCKER} logout || true
+                                    echo "\$DOCKER_PASSWORD" | ${DOCKER} login -u "\$DOCKER_USERNAME" --password-stdin
+                                    ${DOCKER} push ${imageName}:${DOCKER_TAG}
+                                    ${DOCKER} tag ${imageName}:${DOCKER_TAG} ${imageName}:latest
+                                    ${DOCKER} push ${imageName}:latest
+                                """
+                            }
+                        }
                     }
                 }
             }
@@ -135,7 +141,7 @@ pipeline {
             echo '==========================================='
             echo ' PIPELINE SUCCEEDED'
             echo ' Frontend → http://localhost:3000'
-            echo ' Backend  → http://localhost:3001'
+            echo ' Backend  → http://localhost:5000'
             echo '==========================================='
         }
         failure {
