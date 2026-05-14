@@ -117,7 +117,7 @@ pipeline {
                     sh """
                         ${DOCKER} run -d \
                             --name todo-frontend-container \
-                            -p 3000:3000 \
+                            -p 3000:80 \
                             -e REACT_APP_API_URL='https://be-todo-02230299.onrender.com' \
                             ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG}
                     """
