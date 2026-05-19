@@ -82,24 +82,17 @@ pipeline {
             steps {
                 echo '========== Pushing images to Docker Hub =========='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
-                        def images = [
-                            env.DOCKER_IMAGE_FRONTEND,
-                            env.DOCKER_IMAGE_BACKEND
-                        ]
+                    retry(3) {
+                        sh '''
+                            set -eu
+                            echo "$DOCKER_PASSWORD" | "$DOCKER" login -u "$DOCKER_USERNAME" --password-stdin
 
-                        images.each { imageName ->
-                            retry(3) {
-                                sh """
-                                    set -eu
-                                    ${DOCKER} logout || true
-                                    echo "\$DOCKER_PASSWORD" | ${DOCKER} login -u "\$DOCKER_USERNAME" --password-stdin
-                                    ${DOCKER} push ${imageName}:${DOCKER_TAG}
-                                    ${DOCKER} tag ${imageName}:${DOCKER_TAG} ${imageName}:latest
-                                    ${DOCKER} push ${imageName}:latest
-                                """
-                            }
-                        }
+                            for image in "$DOCKER_IMAGE_FRONTEND" "$DOCKER_IMAGE_BACKEND"; do
+                                "$DOCKER" push "${image}:${DOCKER_TAG}"
+                                "$DOCKER" tag "${image}:${DOCKER_TAG}" "${image}:latest"
+                                "$DOCKER" push "${image}:latest"
+                            done
+                        '''
                     }
                 }
             }
