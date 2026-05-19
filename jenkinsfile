@@ -82,18 +82,16 @@ pipeline {
             steps {
                 echo '========== Pushing images to Docker Hub =========='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    retry(3) {
-                        sh '''
-                            set -eu
-                            echo "$DOCKER_PASSWORD" | "$DOCKER" login -u "$DOCKER_USERNAME" --password-stdin
+                    sh '''
+                        set -eu
+                        echo "$DOCKER_PASSWORD" | "$DOCKER" login -u "$DOCKER_USERNAME" --password-stdin
 
-                            for image in "$DOCKER_IMAGE_FRONTEND" "$DOCKER_IMAGE_BACKEND"; do
-                                "$DOCKER" push "${image}:${DOCKER_TAG}"
-                                "$DOCKER" tag "${image}:${DOCKER_TAG}" "${image}:latest"
-                                "$DOCKER" push "${image}:latest"
-                            done
-                        '''
-                    }
+                        for image in "$DOCKER_IMAGE_FRONTEND" "$DOCKER_IMAGE_BACKEND"; do
+                            "$DOCKER" push "${image}:${DOCKER_TAG}"
+                            "$DOCKER" tag "${image}:${DOCKER_TAG}" "${image}:latest"
+                            "$DOCKER" push "${image}:latest"
+                        done
+                    '''
                 }
             }
         }
