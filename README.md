@@ -1,5 +1,23 @@
-# Assignment II Report: Continuous Integration and Continuous Deployment
+# Assignment II Report
+$$
+\huge \begin{array}{c} \mathbf{\textsf{Royal University of Bhutan,}} \\ \mathbf{\textsf{College of Science and Technology}} \end{array}
+$$
 
+$$
+\Large \mathbf{\textsf{Computing Technologies Department  }}
+$$
+
+$$
+\Large \mathbf{\textsf{Continuous Integration and Continuous Deployment DSO101}}
+$$
+
+$$
+\large \mathbf{\textsf{Submitted by: Sonam Dorji Ghalley  }}
+$$
+
+$$
+\large \mathbf{\textsf{Student No: 02230299  }}
+$$
 ## Table of Contents
 
 - [1. Assignment Information](#1-assignment-information)
@@ -29,7 +47,7 @@
 
 ## 1. Assignment Information
 
-This `README.md` serves as my detailed university assignment report for Assignment II in the course `DSO101 — Continuous Integration and Continuous Deployment`. In this assignment, I extended my full-stack To-Do List application by designing and implementing a complete Continuous Integration and Continuous Deployment pipeline using Jenkins, Docker, automated testing, and container-based deployment.
+This report  serves as my detailed assignment report for Assignment II in the course `DSO101 — Continuous Integration and Continuous Deployment`. In this assignment, I extended my full-stack To-Do List application by designing and implementing a complete Continuous Integration and Continuous Deployment pipeline using Jenkins, Docker, automated testing, and container-based deployment.
 
 The purpose of this report is not only to present the final output, but also to explain clearly how I configured the environment, how the pipeline works, what technical decisions I made, what problems I encountered, and how I solved them. I have written this report in a detailed first-person style to demonstrate my understanding of the CI/CD concepts applied throughout the assignment.
 
@@ -142,7 +160,7 @@ This structure reflects the separation of concerns within the application:
 
 Keeping the frontend and backend in separate directories made it easier for me to structure the Jenkins stages cleanly because each service has its own dependency installation, testing, and Docker build process.
 
-## 9. Jenkins Environment Setup on macOS
+## 9. Jenkins Environment Setup 
 
 I completed the Jenkins setup on macOS. I installed Jenkins using Homebrew because it is a convenient and widely used package manager on macOS. The following commands were used during the setup:
 
@@ -818,99 +836,60 @@ The following screenshots should be included in the final submitted report to vi
 
 ### Jenkins Pipeline Job Showing All 8 Stages Passing
 
-Show Image
-
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Jenkins pipeline job dashboard or stage view with all eight stages completed successfully in green. It should clearly confirm that the entire CI/CD workflow executed from checkout through deployment without failure.
+![Pipeline Job Dashboard](images/1.png)
+This screenshot should show the Jenkins pipeline job dashboard or stage view with all eight stages completed successfully in green. It clearly confirm that the entire CI/CD workflow executed from checkout through deployment without failure.
 
 ### Jenkins Console Output Showing Successful npm Install for Frontend
 
-Show Image
+![npm install for frontend](images/2.png)
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Jenkins console log lines from the `Install Frontend Dependencies` stage, including the successful execution of `npm install` and `npm install --save-dev jest-junit` inside the `frontend` directory.
+This screenshot should show the Jenkins console log lines from the `Install Frontend Dependencies` stage, including the successful execution of `npm install`. The log should confirm that all frontend packages were installed without errors.
 
 ### Jenkins Console Output Showing Successful npm Install for Backend
 
-Show Image
+![npm install for backend](images/3.png)
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Jenkins console log lines from the `Install Backend Dependencies` stage, including the successful installation of backend packages and development dependencies such as `jest`, `jest-junit`, and `supertest`.
+This screenshot shows the Jenkins console log lines from the `Install Backend Dependencies` stage, including the successful installation of backend packages and development dependencies such as `jest`, `jest-junit`, and `supertest`.
 
 ### Jenkins Console Output Showing Successful React Build
 
-Show Image
+![react build](images/4.png)
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the `Build Frontend` stage in the Jenkins console output, confirming that `npm run build` completed successfully and that the React production build was generated without compilation errors.
+This screenshot shows the `Build Frontend` stage in the Jenkins console output, confirming that `npm run build` completed successfully and that the React production build was generated without compilation errors.
 
 ### Jenkins Console Output Showing Backend Tests Passing
 
-Show Image
+![backend tests passing](images/5.png)
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the backend test stage output, confirming that the Jest and Supertest API tests ran successfully and that the backend test suite passed in Jenkins.
-
-### Jenkins Test Results Page Showing All Test Cases
-
-Show Image
-
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Jenkins Test Results page where the JUnit report is published. It should display the backend test cases and confirm that the executed tests passed successfully.
+This screenshot shows the backend test stage output, confirming that the Jest and Supertest API tests ran successfully and that the backend test suite passed in Jenkins.
+and should show the Jenkins Test Results page where the JUnit report is published. It should display the backend test cases and confirm that the executed tests passed successfully.
 
 ### Jenkins Console Output Showing Docker Images Being Built
 
-Show Image
+![Docker build](images/6.png)
+![same](images/7.png)
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Docker build stage in Jenkins, including the commands and output for building `sdgv2734/todo-frontend` and `sdgv2734/todo-backend` images tagged with the Jenkins build number.
+This screenshot shows the Docker build stage in Jenkins, including the commands and output for building `sdgv2734/todo-frontend` and `sdgv2734/todo-backend` images tagged with the Jenkins build number.
 
 ### Jenkins Console Output Showing Docker Images Being Pushed to Docker Hub
 
-Show Image
-
-Caption explaining what this screenshot demonstrates
+![docker push frontend](images/8.png)
+![docker push backend](images/9.png)
 
 This screenshot should show the Docker push stage in Jenkins, including authentication with Docker Hub and the successful push of both build-number tags and `latest` tags for the frontend and backend images.
 
 ### Jenkins Console Output Showing Containers Being Deployed
 
-Show Image
+![deployment](images/10.png)
 
-Caption explaining what this screenshot demonstrates
+This should show the deployment stage in Jenkins where old containers are stopped and removed, and new frontend and backend containers are started successfully with the required environment variables.
 
-This screenshot should show the deployment stage in Jenkins where old containers are stopped and removed, and new frontend and backend containers are started successfully with the required environment variables.
+### Docker Hub Page Showing `sdgv2734/todo-frontend`and `sdgv2734/todo-backend` Image With Tags
 
-### Docker Hub Page Showing `sdgv2734/todo-frontend` Image With Tags
+![docker hub](images/11.png)
 
-Show Image
+This screenshot should show the Docker Hub repository page for `sdgv2734/todo-frontend` and `sdgv2734/todo-backend`, including visible tags such as the Jenkins build-number tag and `latest`, proving that the image was published successfully.
 
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Docker Hub repository page for `sdgv2734/todo-frontend`, including visible tags such as the Jenkins build-number tag and `latest`, proving that the image was published successfully.
-
-### Docker Hub Page Showing `sdgv2734/todo-backend` Image With Tags
-
-Show Image
-
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the Docker Hub repository page for `sdgv2734/todo-backend`, including visible tags such as the Jenkins build-number tag and `latest`, confirming that the backend image was pushed successfully.
-
-### The Running Application at `http://localhost:3000`
-
-Show Image
-
-Caption explaining what this screenshot demonstrates
-
-This screenshot should show the deployed To-Do List application running in the browser at `http://localhost:3000`, proving that the frontend container is accessible and that the deployed application is available after the CI/CD pipeline completes.
 
 ## 23. Learning Reflection
 
