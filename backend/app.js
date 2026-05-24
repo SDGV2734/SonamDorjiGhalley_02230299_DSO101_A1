@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const fs = require("fs");
+const path = require("path");
 const prisma = require("./prismaClient");
 
 dotenv.config();
@@ -76,6 +78,16 @@ app.delete("/tasks/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete task" });
   }
 });
+
+const frontendBuildPath = path.join(__dirname, "public");
+const frontendIndexPath = path.join(frontendBuildPath, "index.html");
+
+if (fs.existsSync(frontendIndexPath)) {
+  app.use(express.static(frontendBuildPath));
+  app.get(/.*/, (req, res) => {
+    res.sendFile(frontendIndexPath);
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 

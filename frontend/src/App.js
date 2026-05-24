@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API = process.env.REACT_APP_API_URL;
+const API = process.env.REACT_APP_API_URL || "";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -12,7 +12,9 @@ function App() {
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API}/tasks`);
-      setTasks(res.data);
+      if (Array.isArray(res?.data)) {
+        setTasks(res.data);
+      }
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }

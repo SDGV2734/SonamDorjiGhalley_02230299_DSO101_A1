@@ -1,16 +1,18 @@
 # DSO101 Assignment 3: DockerHub, GitHub Actions, and Render Deployment
 
-**Student Name:** `<your name>`
-**Student ID:** `<your student id>`
-**Repository:** `<paste GitHub repository URL>`
-**Live Link:** `<paste final public Render URL>`
+**Student Name:** `Sonam Dorji Ghalley`
+
+**Student ID:** `022030299`
+
+**Live Link:** [Live App](https://todo-app-a2-latest.onrender.com)
 
 ## Project Overview
 
-This assignment extends the existing Node.js To-Do application by adding a production Docker build, a DockerHub-based image registry workflow, and an automated GitHub Actions pipeline that triggers deployment on Render.com.
+This assignment extends the existing full-stack To-Do application by adding a production Docker build, a DockerHub-based image registry workflow, and an automated GitHub Actions pipeline that triggers deployment on Render.com.
 
 The application stack includes:
 
+- Frontend: React
 - Backend: Node.js, Express, Prisma
 - Database: PostgreSQL
 - Container registry: DockerHub
@@ -37,9 +39,23 @@ This allows GitHub Actions and Docker builds to run a repeatable quality gate be
 
 ### 2. Created a Production Dockerfile
 
-I created a root-level `Dockerfile` using the required `node:20-alpine` base image. The Dockerfile copies `package*.json` first to improve Docker layer caching, installs dependencies, copies the backend source code, generates the Prisma client, runs tests, sets `PORT=3000`, exposes port `3000`, and starts the app with `npm start`.
+I created a root-level `Dockerfile` using the required `node:20-alpine` base image. The Dockerfile builds the React frontend, copies `package*.json` first to improve Docker layer caching, installs backend dependencies, copies the backend source code, generates the Prisma client, runs tests, sets `PORT=3000`, exposes port `3000`, and starts the Express app with `npm start`. Express serves the React build from the same Render service.
 
 ```dockerfile
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend/. .
+
+ENV REACT_APP_API_URL=
+ENV WATCHMAN=false
+RUN npm test -- --watchAll=false --watchman=false
+RUN npm run build
+
 FROM node:20-alpine
 
 WORKDIR /app
@@ -51,6 +67,8 @@ COPY backend/. .
 
 RUN npx prisma generate
 RUN npm test
+
+COPY --from=frontend-builder /frontend/build ./public
 
 ENV PORT=3000
 EXPOSE 3000
@@ -86,7 +104,7 @@ In the GitHub repository, I added the following secrets under:
 On Render.com, I configured the web service to deploy from the DockerHub image:
 
 ```text
-<dockerhub-username>/todo-app:latest
+sdgv2734/todo-app:latest
 ```
 
 Then I copied the Render deploy hook URL and saved it as the GitHub secret `RENDER_DEPLOY_HOOK_URL`.
