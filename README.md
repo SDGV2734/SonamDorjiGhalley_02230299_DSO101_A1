@@ -1,396 +1,198 @@
+# DSO101 Assignment 3: DockerHub, GitHub Actions, and Render Deployment
 
-# DSO101 – Assignment 1
-## Containerised Full-Stack To-Do Application
+**Student Name:** `<your name>`
+**Student ID:** `<your student id>`
+**Repository:** `<paste GitHub repository URL>`
+**Live Link:** `<paste final public Render URL>`
 
-**Student Name:** SONAM DORJI GHALLEY  
-**Student ID:** 02230299  
+## Project Overview
 
----
+This assignment extends the existing Node.js To-Do application by adding a production Docker build, a DockerHub-based image registry workflow, and an automated GitHub Actions pipeline that triggers deployment on Render.com.
 
-# 1. Introduction
+The application stack includes:
 
-This project demonstrates the development, containerisation, and deployment of a full‑stack To‑Do application using modern DevOps practices.
-
-The system includes:
-
-- Frontend: React.js
-- Backend: Node.js with Express
+- Backend: Node.js, Express, Prisma
 - Database: PostgreSQL
-- ORM: Prisma
-- Containerisation: Docker
-- Cloud Deployment: Render
-- Version Control: GitHub
+- Container registry: DockerHub
+- CI/CD: GitHub Actions
+- Cloud deployment: Render.com
 
-The application allows users to create, read, update, and delete tasks.
+## Steps Taken
 
----
+### 1. Verified Package Scripts
 
-# 2. Technology Stack
+I reviewed the backend `package.json` file and confirmed that the application has a production start script:
 
-| Layer | Technology |
-|------|-------------|
-| Frontend | React |
-| Backend | Node.js + Express |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| Containerisation | Docker |
-| Cloud Deployment | Render |
-| CI/CD | Render Blueprint |
-| Version Control | Git + GitHub |
-
----
-
-# 3. System Architecture
-
-```
-+---------------------------+
-|        React Client       |
-|        (Frontend)         |
-+------------+--------------+
-             |
-        HTTP REST API
-             |
-+------------v--------------+
-|      Express Backend      |
-|       Node.js Server      |
-+------------+--------------+
-             |
-          Prisma ORM
-             |
-+------------v--------------+
-|        PostgreSQL         |
-|         Database          |
-+---------------------------+
+```json
+"start": "node app.js"
 ```
 
----
+I added a standardized test script using Node.js built-in test runner:
 
-# 4. Project Directory Structure
-
-```
-studentname_studentnumber_DSO101_A1/
-
-├── backend/
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── server.js
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   └── migrations/
-│
-├── frontend/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-│
-├── render.yaml
-└── README.md
+```json
+"test": "node --test"
 ```
 
----
+This allows GitHub Actions and Docker builds to run a repeatable quality gate before the image is pushed.
 
-# 5. Backend Implementation
+### 2. Created a Production Dockerfile
 
-The backend is implemented using Node.js and Express.js.
+I created a root-level `Dockerfile` using the required `node:20-alpine` base image. The Dockerfile copies `package*.json` first to improve Docker layer caching, installs dependencies, copies the backend source code, generates the Prisma client, runs tests, sets `PORT=3000`, exposes port `3000`, and starts the app with `npm start`.
 
-## Backend API Endpoints
-
-| Method | Endpoint | Description |
-|------|------|------|
-| GET | `/tasks` | Retrieve all tasks |
-| POST | `/tasks` | Create new task |
-| PUT | `/tasks/:id` | Update task |
-| DELETE | `/tasks/:id` | Delete task |
-
----
-
-# 6. Database Schema (Prisma)
-
-```
-model Task {
-  id        Int     @id @default(autoincrement())
-  title     String
-  completed Boolean @default(false)
-}
-```
-
----
-
-# 7. Backend Containerisation
-
-## Backend Dockerfile
-
-```
-FROM node:22-alpine
+```dockerfile
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm install
 
-COPY prisma ./prisma
+COPY backend/. .
+
 RUN npx prisma generate
+RUN npm test
 
-COPY . .
-
-EXPOSE 5000
-
-CMD ["sh", "-c", "npx prisma migrate deploy && node app.js"]
-```
-
----
-
-# 8. Backend Docker Build
-
-```
-docker build -t dockerhubusername/be-todo:studentid ./backend
-```
-
-### After the image is built, we should see something like this on docker desktop
-
-![Backend Docker Build](images/docker-desktop.png)
-
----
-
-# 9. Backend Docker Hub Push
-
-```
-docker push dockerhubusername/be-todo:studentid
-```
-
-### After pushing the image, it should be visible in your Docker Hub repository
-
-![Backend Docker Hub](images/docker-hub.png)
-
----
-
-# 10. Backend Deployment on Render
-
-Environment variables:
-
-```
-DATABASE_URL=PostgreSQL connection string
-PORT=5000
-```
-
-#### connection string on render for the database service should look something like this:
-
-![Backend Render Deployment](images/db-url.png)
-
----
-
-# 11. Backend API Testing
-
-Example endpoint:
-
-```
-https://backend-service-url.onrender.com/tasks
-```
-
-#### backend checking on post-man should return a list of tasks (empty array if no tasks created yet):
-
-![Backend API Test](images/psot-man-b-check.png)
-
----
-
-# 12. Frontend Implementation
-
-The frontend is built using React and communicates with the backend API.
-
-Example API call:
-
-```
-axios.get(`${process.env.REACT_APP_API_URL}/tasks`)
-```
-
----
-
-# 13. Frontend Environment Configuration
-
-```
-REACT_APP_API_URL=https://backend-service-url.onrender.com
-```
-
----
-
-# 14. Frontend Containerisation
-
-## Frontend Dockerfile
-
-```
-FROM node:22-alpine AS build
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-FROM node:22-alpine
-
-WORKDIR /app
-
-RUN npm install -g serve
-
-COPY --from=build /app/build ./build
-
+ENV PORT=3000
 EXPOSE 3000
 
-CMD ["serve", "-s", "build", "-l", "3000"]
+CMD ["npm", "start"]
 ```
 
----
+### 3. Added GitHub Actions Workflow
 
-# 15. Frontend Docker Build
+I created `.github/workflows/deploy.yml` to automate the CI/CD process whenever code is pushed to the `assignment-3` branch.
 
-```
-docker build -t dockerhubusername/fe-todo:studentid ./frontend
-```
+The workflow performs these steps:
 
-#### After the image is built, we should see something like this on docker desktop
+1. Checks out the repository.
+2. Logs in to DockerHub using GitHub Secrets.
+3. Builds and pushes the Docker image as `<dockerhub-username>/todo-app:latest`.
+4. Triggers a Render deployment using a secure Render deploy hook secret.
 
-![Frontend Docker Build](images/frontend-image.png)
+### 4. Configured GitHub Repository Secrets
 
----
+In the GitHub repository, I added the following secrets under:
 
-# 16. Frontend Docker Hub
+`Settings > Secrets and variables > Actions > New repository secret`
 
-```
-docker push dockerhubusername/fe-todo:studentid
-```
+| Secret Name | Purpose |
+|---|---|
+| `DOCKERHUB_USERNAME` | DockerHub account username used for image tagging and login |
+| `DOCKERHUB_TOKEN` | DockerHub access token used for secure registry authentication |
+| `RENDER_DEPLOY_HOOK_URL` | Render deploy hook URL used to trigger a deployment |
 
-### After pushing the image, it should be visible in your Docker Hub repository
+### 5. Connected DockerHub to Render
 
-![Frontend Docker Hub](images/front-dockerhub.png)
+On Render.com, I configured the web service to deploy from the DockerHub image:
 
----
-
-# 17. Frontend Deployment on Render
-
-### 
-
-![Frontend Render Deployment](images/frontend-render.png)
-
----
-
-# 18. Container Architecture
-
-```
-+----------------------+
-|   React Container    |
-|    (Frontend)        |
-+----------+-----------+
-           |
-       REST API
-           |
-+----------v-----------+
-|  Express Container   |
-|      (Backend)       |
-+----------+-----------+
-           |
-        Prisma ORM
-           |
-+----------v-----------+
-|  PostgreSQL Service  |
-|       (Render)       |
-+----------------------+
+```text
+<dockerhub-username>/todo-app:latest
 ```
 
----
+Then I copied the Render deploy hook URL and saved it as the GitHub secret `RENDER_DEPLOY_HOOK_URL`.
 
-# 19. Render Blueprint Deployment
+### 6. Tested the CI/CD Pipeline
 
-## render.yaml
+After committing and pushing the changes to the `assignment-3` branch, GitHub Actions automatically built the Docker image, pushed it to DockerHub, and triggered Render to deploy the latest version.
 
-```
-services:
-  - type: web
-    name: be-todo
-    env: docker
-    plan: free
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    envVars:
-      - key: DATABASE_URL
-        value: postgresql://to_do_db_panq_user:4jNgb8dZqHi29By7NXaxe.......
-        sync: true
-      - key: PORT
-        value: 5000
-
-  - type: web
-    name: fe-todo
-    env: docker
-    plan: free
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
-    envVars:
-      - key: REACT_APP_API_URL
-        value: https://be-todo-02230299.onrender.com
-
-```
-
----
-
-# 20. Deployment Pipeline
-
-```
-Developer
-   |
-   | Git Push
-   v
-GitHub Repository
-   |
-   v
-Render Blueprint
-   |
-Docker Image Build
-   |
-Container Deployment
-   |
-Live Application
-```
-
----
-
-# 21. Automatic Deployment Test
-
-```
+```bash
 git add .
-git commit -m "Test auto deploy"
-git push
+git commit -m "Add DockerHub GitHub Actions Render deployment"
+git push origin assignment-3
 ```
 
-#### working automatic deployment should trigger a new build and deploy the updated application. After the deployment is complete, visiting the frontend URL should reflect the changes.
+## GitHub Actions Workflow
 
-![initial website](images/test1.png)
+```yaml
+name: Build and Deploy to Render
 
+on:
+  push:
+    branches:
+      - assignment-3
 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
----
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-# 22. Repository
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-ADD YOUR GITHUB REPOSITORY LINK
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest
 
----
+      - name: Trigger Render Deployment
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+```
 
-# 23. Live Application Links
+## Challenges Faced
 
-Frontend URL:
+### Handling Secrets Securely
 
-https://frontend-todo-02230299.onrender.com
+One challenge was ensuring that DockerHub credentials and the Render deploy hook URL were not hardcoded in the workflow file. This was solved by storing them as GitHub Secrets and referencing them securely in `deploy.yml`.
 
-Backend:
+### Docker Layer Caching
 
- Backend URL
+To make image builds faster, the Dockerfile copies `package*.json` before copying the full source code. This allows Docker to reuse the dependency installation layer when application code changes but dependencies remain the same.
 
-https://be-todo-02230299.onrender.com
+### Running Tests During Image Build
 
----
+The Dockerfile includes `RUN npm test`, so the image build fails if tests fail. This ensures that only code passing the test gate can be pushed to DockerHub and deployed to Render.
 
-# 24. Conclusion
+### Matching Runtime Port Configuration
 
-This project demonstrates a full DevOps workflow including application development, containerisation using Docker, and deployment using Render with automated CI/CD pipelines.
+The Dockerfile sets and exposes port `3000`, while the Node.js application can also read `process.env.PORT`. This supports cloud platforms like Render, which may inject the port dynamically during deployment.
+
+## Learning Outcomes
+
+- I learned how to create a production-ready Dockerfile for a Node.js application.
+- I understood how Docker layer caching improves build performance.
+- I learned how DockerHub acts as a container registry for storing and versioning images.
+- I understood how GitHub Actions can automate testing, image building, pushing, and deployment.
+- I learned how Render deploy hooks enable continuous deployment from an external CI/CD pipeline.
+- I learned why secrets should be stored in GitHub Secrets instead of being committed into source code.
+
+## Screenshots
+
+### 1. Successful GitHub Actions Workflow Execution
+
+Paste screenshot here:
+
+```text
+<screenshot: GitHub Actions workflow completed successfully>
+```
+
+### 2. DockerHub Image Registry State
+
+Paste screenshot here:
+
+```text
+<screenshot: DockerHub repository showing todo-app:latest image>
+```
+
+### 3. Render Deployment Dashboard Status
+
+Paste screenshot here:
+
+```text
+<screenshot: Render dashboard showing successful deployment>
+```
+
+## Live Link
+
+```text
+<paste final public Render URL here>
+```
+
+## Conclusion
+
+This assignment demonstrates a complete DevOps workflow for containerizing a Node.js application, publishing the image to DockerHub, and deploying it to Render through a GitHub Actions CI/CD pipeline. The workflow improves reliability by running tests during the Docker build and improves security by storing DockerHub and Render credentials as GitHub Secrets.

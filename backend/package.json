@@ -1,10 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
+    "test": "node --test",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"
@@ -16,6 +17,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1"
   },
   "devDependencies": {
