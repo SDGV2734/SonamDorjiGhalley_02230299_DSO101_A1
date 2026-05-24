@@ -1,8 +1,24 @@
 # DSO101 Assignment 3: DockerHub, GitHub Actions, and Render Deployment
 
-**Student Name:** Sonam Dorji Ghalley  
-**Student ID:** 022030299  
-**Live Application:** [todo-app-a2-latest.onrender.com](https://todo-app-a2-latest.onrender.com)
+$$
+\huge \begin{array}{c} \mathbf{\textsf{Royal University of Bhutan,}} \\ \mathbf{\textsf{College of Science and Technology}} \end{array}
+$$
+
+$$
+\Large \mathbf{\textsf{Computing Technologies Department  }}
+$$
+
+$$
+\Large \mathbf{\textsf{Continuous Integration and Continuous Deployment DSO101}}
+$$
+
+$$
+\large \mathbf{\textsf{Submitted by: Sonam Dorji Ghalley  }}
+$$
+
+$$
+\large \mathbf{\textsf{Student No: 02230299  }}
+$$
 
 ## Project Overview
 
