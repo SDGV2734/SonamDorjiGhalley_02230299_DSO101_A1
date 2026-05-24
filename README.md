@@ -359,12 +359,6 @@ A successful automatic deployment should trigger a new build and redeploy the up
 
 ---
 
-# 22. Repository
-
-Add your GitHub repository link here.
-
----
-
 # 23. Live Application Links
 
 **Frontend URL:**  
